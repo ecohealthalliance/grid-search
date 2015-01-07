@@ -33,6 +33,24 @@ class GRIDDatabase(Resource):
             mustTerms.append(getTerm(params.get('host'), 'hostVal'))
         if params.get('country'):
             mustTerms.append(getTerm(params.get('country'), 'locationNation'))
+        if params.get('start'):
+            dateTerm = {
+                "range": {
+                    "startDateISO": {
+                        "gte": params.get('start')
+                    }
+                }
+            }
+            mustTerms.append(dateTerm)
+        if params.get('end'):
+            dateTerm = {
+                "range": {
+                    "startDateISO": {
+                        "lte": params.get('end')
+                    }
+                }
+            }
+            mustTerms.append(dateTerm)
 
         query = {
             "sort": [
@@ -78,6 +96,16 @@ class GRIDDatabase(Resource):
         .param(
             "country",
             "The country where the event occurred",
+            required=False
+        )
+        .param(
+            "start",
+            "The start date of the query (inclusive)",
+            required=False
+        )
+        .param(
+            "end",
+            "The end date of the query (inclusive)",
             required=False
         )
         .errorResponse()
