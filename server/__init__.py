@@ -31,6 +31,8 @@ class GRIDDatabase(Resource):
             mustTerms.append(getTerm(params.get('disease'), 'diseaseVal'))
         if params.get('host'):
             mustTerms.append(getTerm(params.get('host'), 'hostVal'))
+        if params.get('country'):
+            mustTerms.append(getTerm(params.get('country'), 'locationNation'))
 
         query = {
             "sort": [
@@ -71,6 +73,11 @@ class GRIDDatabase(Resource):
         .param(
             "host",
             "The host of the event",
+            required=False
+        )
+        .param(
+            "country",
+            "The country where the event occurred",
             required=False
         )
         .errorResponse()
