@@ -22,17 +22,13 @@ def getTerm(param, gridField):
 class GRIDDatabase(Resource):
     def gridSearch(self, params):
 
-        mustTerms = [{
-            "match_phrase": {
-                "eidVal": 1
-            }
-        }]
+        terms = []
         if params.get('disease'):
-            mustTerms.append(getTerm(params.get('disease'), 'diseaseVal'))
+            terms.append(getTerm(params.get('disease'), 'diseaseVal'))
         if params.get('host'):
-            mustTerms.append(getTerm(params.get('host'), 'hostVal'))
+            terms.append(getTerm(params.get('host'), 'hostVal'))
         if params.get('country'):
-            mustTerms.append(getTerm(params.get('country'), 'locationNation'))
+            terms.append(getTerm(params.get('country'), 'locationNation'))
         if params.get('start'):
             dateTerm = {
                 "range": {
@@ -41,7 +37,7 @@ class GRIDDatabase(Resource):
                     }
                 }
             }
-            mustTerms.append(dateTerm)
+            terms.append(dateTerm)
         if params.get('end'):
             dateTerm = {
                 "range": {
@@ -50,7 +46,24 @@ class GRIDDatabase(Resource):
                     }
                 }
             }
-            mustTerms.append(dateTerm)
+            terms.append(dateTerm)
+
+        eidTerm = [{
+            "match_phrase": {
+                "eidVal": 1
+            }
+        }]
+
+        if params.get('minimum_should_match'):
+            minimum_should_match = int(params.get('minimum_should_match'))
+        else:
+            minimum_should_match = len(terms)
+        
+        boolQuery = {
+            "must": [eidTerm],
+            "should": terms,
+            "minimum_should_match": minimum_should_match
+        }
 
         query = {
             "sort": [
@@ -63,9 +76,7 @@ class GRIDDatabase(Resource):
             "query": {
                 "filtered": {
                     "query": {
-                        "bool": {
-                            "must": mustTerms
-                        }
+                        "bool": boolQuery
                     }
                 }
             }
@@ -107,6 +118,12 @@ class GRIDDatabase(Resource):
             "end",
             "The end date of the query (inclusive)",
             required=False
+        )
+        .param(
+            "minimum_should_match",
+            "Include results that match at least this number of the parameters (default - results match all parameters)",
+            required=False,
+            dataType='int'
         )
         .errorResponse()
     )
